@@ -51,4 +51,8 @@ public class Rows {
     public static List<Cell> createSparseCellList(Row row, List<Integer> index) {
         return index.stream().map(row::createCell).collect(Collectors.toList());
     }
+
+    public static Cell createCellWithFormula(Row row, Integer colIndex, String formula) {
+        return null;
+    }
 }

@@ -1,9 +1,7 @@
 package cc.domovoi.poi.ooxml;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.jooq.lambda.tuple.Tuple2;
 
 import java.time.LocalDate;
@@ -120,6 +118,24 @@ public class Cells {
     public static String getValueAsString(Cell cell) {
         // Todo: ...
         return "";
+    }
+
+    public static Cell addMergedRegionAsCell(Sheet sheet, Integer firstRowIndex, Integer lastRowIndex, Integer firstColIndex, Integer lastColIndex) {
+        Cell cell = sheet.createRow(firstRowIndex).createCell(firstColIndex);
+        Sheets.addMergedRegion(sheet, firstRowIndex, lastRowIndex, firstColIndex, lastColIndex);
+        return cell;
+    }
+
+    public static Cell addMergedRegionAsCell(Sheet sheet, String ref) {
+        CellRangeAddress cellRangeAddress = CellRangeAddress.valueOf(ref);
+        Cell cell = sheet.createRow(cellRangeAddress.getFirstRow()).createCell(cellRangeAddress.getFirstColumn());
+        Sheets.addMergedRegion(sheet, ref);
+        return cell;
+    }
+
+    public static Cell setCellFormula(Cell cell, String formula) {
+        cell.setCellFormula(formula);
+        return cell;
     }
 
 }

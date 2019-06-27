@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.*;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class Workbooks {
 
@@ -74,5 +75,19 @@ public class Workbooks {
         }
     }
 
+    public static Sheet createSheet(Workbook workbook, String sheetName) {
+        return workbook.createSheet(sheetName);
+    }
 
+    public static Function<? super Workbook, ? extends Sheet> createSheet(String sheetName) {
+        return workbook -> workbook.createSheet(sheetName);
+    }
+
+    public static Sheet createSheet(Workbook workbook) {
+        return workbook.createSheet();
+    }
+
+    public static Function<? super Workbook, ? extends Sheet> createSheet() {
+        return Workbook::createSheet;
+    }
 }
