@@ -16,6 +16,10 @@ public class CellValueSetters {
         CellValueSetters.zoneOffsetId = zoneOffsetId;
     }
 
+    public static String zoneOffsetId() {
+        return CellValueSetters.zoneOffsetId;
+    }
+
     public static CellValueSetter forClass(Class<?> clazz) {
         switch (clazz.getName()) {
             case "String": return new StringCellValueSetter();

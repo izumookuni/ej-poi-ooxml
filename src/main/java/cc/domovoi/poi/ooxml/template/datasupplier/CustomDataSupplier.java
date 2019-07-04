@@ -6,6 +6,11 @@ import java.util.function.Function;
 
 public class CustomDataSupplier<T> implements DataSupplier<Object, T> {
 
+    @SuppressWarnings("unchecked")
+    public static <T2> CustomDataSupplier<T2> self() {
+        return new CustomDataSupplier<>(o -> (T2) o);
+    }
+
     private Function<Object, T> operation;
 
     public CustomDataSupplier(Function<Object, T> operation) {

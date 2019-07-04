@@ -4,6 +4,8 @@ import cc.domovoi.poi.ooxml.template.DataSupplier;
 
 public class EmptyDataSupplier implements DataSupplier<Object, String> {
 
+    public static EmptyDataSupplier empty = new EmptyDataSupplier();
+
     public EmptyDataSupplier() {
     }
 
