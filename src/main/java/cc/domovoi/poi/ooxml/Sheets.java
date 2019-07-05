@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public class Sheets {
@@ -16,6 +17,26 @@ public class Sheets {
 
     public static Function<? super Sheet, ? extends Row> createRow(Integer rowIndex) {
         return sheet -> Sheets.createRow(sheet, rowIndex);
+    }
+
+    public static Function<? super Integer, ? extends Row> createRow(Sheet sheet) {
+        return rowIndex -> Sheets.createRow(sheet, rowIndex);
+    }
+
+    public static Row getOrCreateRow(Sheet sheet, Integer rowIndex) {
+        Row row = sheet.getRow(rowIndex);
+        if (Objects.isNull(row)) {
+            row = sheet.createRow(rowIndex);
+        }
+        return row;
+    }
+
+    public static Function<? super Sheet, ? extends Row> getOrCreateRow(Integer rowIndex) {
+        return sheet -> Sheets.getOrCreateRow(sheet, rowIndex);
+    }
+
+    public static Function<? super Integer, ? extends Row> getOrCreateRow(Sheet sheet) {
+        return rowIndex -> Sheets.getOrCreateRow(sheet, rowIndex);
     }
 
     public static Integer addMergedRegion(Sheet sheet, Integer firstRowIndex, Integer lastRowIndex, Integer firstColIndex, Integer lastColIndex) {

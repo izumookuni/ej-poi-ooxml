@@ -121,14 +121,16 @@ public class Cells {
     }
 
     public static Cell addMergedRegionAsCell(Sheet sheet, Integer firstRowIndex, Integer lastRowIndex, Integer firstColIndex, Integer lastColIndex) {
-        Cell cell = sheet.createRow(firstRowIndex).createCell(firstColIndex);
+//        Cell cell = sheet.createRow(firstRowIndex).createCell(firstColIndex);
+        Cell cell = Sheets.getOrCreateRow(firstRowIndex).andThen(Rows.getOrCreateCell(firstColIndex)).apply(sheet);
         Sheets.addMergedRegion(sheet, firstRowIndex, lastRowIndex, firstColIndex, lastColIndex);
         return cell;
     }
 
     public static Cell addMergedRegionAsCell(Sheet sheet, String ref) {
         CellRangeAddress cellRangeAddress = CellRangeAddress.valueOf(ref);
-        Cell cell = sheet.createRow(cellRangeAddress.getFirstRow()).createCell(cellRangeAddress.getFirstColumn());
+//        Cell cell = sheet.createRow(cellRangeAddress.getFirstRow()).createCell(cellRangeAddress.getFirstColumn());
+        Cell cell = Sheets.getOrCreateRow(cellRangeAddress.getFirstRow()).andThen(Rows.getOrCreateCell(cellRangeAddress.getFirstColumn())).apply(sheet);
         Sheets.addMergedRegion(sheet, ref);
         return cell;
     }

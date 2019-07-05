@@ -20,11 +20,31 @@ public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
     }
 
     @Override
+    public String getPid() {
+        return regionId;
+    }
+
+    @Override
     public void init(PainterContext painterContext) {
         super.init(painterContext);
         if (regionId != null) {
             ((RegionDataPainter<?>) painterContext.getDataPainterMap().get(regionId)).addChild(this);
         }
+    }
+
+    @Override
+    public void beforePaint(PainterContext painterContext) {
+
+    }
+
+    @Override
+    public void paint(PainterContext painterContext) {
+
+    }
+
+    @Override
+    public void afterPaint(PainterContext painterContext) {
+
     }
 
     public String getRegionId() {

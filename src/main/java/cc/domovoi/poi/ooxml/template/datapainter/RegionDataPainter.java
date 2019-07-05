@@ -58,12 +58,12 @@ public class RegionDataPainter<T> implements DataPainter {
 
     @Override
     public void beforePaint(PainterContext painterContext) {
-
+        painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
     }
 
     @Override
     public void paint(PainterContext painterContext) {
-
+        children.forEach(child -> child.postPaint(painterContext));
     }
 
     @Override

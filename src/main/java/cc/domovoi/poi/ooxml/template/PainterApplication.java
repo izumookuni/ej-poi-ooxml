@@ -6,11 +6,13 @@ import cc.domovoi.poi.ooxml.template.datapainter.RegionDataPainter;
 import cc.domovoi.poi.ooxml.template.datapainter.RelativeCellDataPainter;
 import cc.domovoi.poi.ooxml.template.datasupplier.*;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Font;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class PainterApplication {
@@ -53,14 +55,24 @@ public class PainterApplication {
         return CustomDataSupplier.self();
     }
 
-    public static CellStyle style(String id, String... ss) {
-        // Todo: ...
-        return null;
+    public static Font font(String id, Consumer<? super Font> consumer) {
+        return new FontStamp(id, consumer).genData(painterContext);
+    }
+
+    public static Font font(String id) {
+        return FontStamp.stamp(id).genData(painterContext);
+    }
+
+    public static CellStyle style(String id, Consumer<? super CellStyle> consumer) {
+        return new CellStyleStamp(id, consumer).genData(painterContext);
+    }
+
+    public static void postPaint() {
+        painterContext.postPaint();
     }
 
     public static CellStyle style(String id) {
-        // Todo: ...
-        return null;
+        return CellStyleStamp.stamp(id).genData(painterContext);
     }
 
     /**

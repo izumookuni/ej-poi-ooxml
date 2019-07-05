@@ -7,8 +7,9 @@ import cc.domovoi.poi.ooxml.template.datasupplier.EmptyDataSupplier;
 import org.apache.poi.ss.usermodel.*;
 
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class PainterContext {
 
@@ -16,46 +17,53 @@ public class PainterContext {
 
     private Map<String, CellStyle> cellStyleMap = new HashMap<>();
 
+    private Map<String, Font> fontMap = new HashMap<>();
+
     private Object data;
 
     private Map<String, Object> tempData = new HashMap<>();
 
     private Workbook workbook;
 
-    private Map<Predicate<DataPainter>, DataSupplier<Object, ?>> customDataGetter = new LinkedHashMap<>();
+    private Map<Predicate<DataPainter>, Supplier<Object>> customDataGetter = new LinkedHashMap<>();
 
     private Sheet lastSheet;
 
     private Row lastRow;
 
+    public void postPaint() {
+        dataPainterMap.values().stream().filter(DataPainter::root).forEach(dataPainter -> dataPainter.postPaint(this));
+    }
+
     public void attachDataPainter(String id, DataPainter dataPainter) {
         dataPainterMap.putIfAbsent(id, dataPainter);
     }
 
-    public void attachDataGetter(Predicate<DataPainter> p, DataSupplier<Object, ?> dataSupplier) {
-        customDataGetter.put(p, dataSupplier);
+    public void attachDataGetter(Predicate<DataPainter> p, Supplier<Object> customData) {
+        customDataGetter.put(p, customData);
     }
 
     public Object genData(DataPainter dataPainter) {
-        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElseGet(CustomDataSupplier::self).apply(data);
+        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElse(() -> this.data).get();
+//        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElseGet(CustomDataSupplier::self).apply(data);
     }
 
-    public void drawCell(String id, Object data) {
-        CellDataPainter<?> dataPainter = (CellDataPainter<?>) dataPainterMap.get(id);
-        Row row = lastSheet.getRow(dataPainter.getRowIndex());
-        if (row == null) {
-            row = lastSheet.createRow(dataPainter.getRowIndex());
-        }
-        Cell cell = row.createCell(dataPainter.getColIndex());
-        if (cellStyleMap.containsKey(id)) {
-            cell.setCellStyle(cellStyleMap.get(id));
-        }
-        if (Objects.nonNull(data)) {
-            CellValueSetters.forClass(dataPainter.dataClass()).setCellValue(data, cell);
-        }
-        else {
-            cell.setCellValue(EmptyDataSupplier.empty.apply(null));
-        }
+    public void drawCell(String id, CellStyle cellStyle, Object data) {
+//        CellDataPainter<?> dataPainter = (CellDataPainter<?>) dataPainterMap.get(id);
+//        Row row = lastSheet.getRow(dataPainter.getRowIndex());
+//        if (row == null) {
+//            row = lastSheet.createRow(dataPainter.getRowIndex());
+//        }
+//        Cell cell = row.createCell(dataPainter.getColIndex());
+//        if (Objects.nonNull(cellStyle)) {
+//            cell.setCellStyle(cellStyle);
+//        }
+//        if (Objects.nonNull(data)) {
+//            CellValueSetters.forClass(dataPainter.dataClass()).setCellValue(data, cell);
+//        }
+//        else {
+//            cell.setCellValue(EmptyDataSupplier.empty.apply(null));
+//        }
     }
 
     public List<DataPainter> findChildren(String id) {
@@ -76,6 +84,14 @@ public class PainterContext {
 
     public void setCellStyleMap(Map<String, CellStyle> cellStyleMap) {
         this.cellStyleMap = cellStyleMap;
+    }
+
+    public Map<String, Font> getFontMap() {
+        return fontMap;
+    }
+
+    public void setFontMap(Map<String, Font> fontMap) {
+        this.fontMap = fontMap;
     }
 
     public Object getData() {
@@ -102,11 +118,11 @@ public class PainterContext {
         this.workbook = workbook;
     }
 
-    public Map<Predicate<DataPainter>, DataSupplier<Object, ?>> getCustomDataGetter() {
+    public Map<Predicate<DataPainter>, Supplier<Object>> getCustomDataGetter() {
         return customDataGetter;
     }
 
-    public void setCustomDataGetter(Map<Predicate<DataPainter>, DataSupplier<Object, ?>> customDataGetter) {
+    public void setCustomDataGetter(Map<Predicate<DataPainter>, Supplier<Object>> customDataGetter) {
         this.customDataGetter = customDataGetter;
     }
 

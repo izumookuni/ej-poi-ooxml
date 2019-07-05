@@ -27,12 +27,35 @@ public class Rows {
         return Rows.createCell(row, colIndex, null);
     }
 
+    public static Cell getOrCreateCell(Row row, Integer colIndex, CellStyle cellStyle) {
+        Cell cell = row.getCell(colIndex);
+        if (Objects.isNull(cell)) {
+            cell = row.createCell(colIndex);
+            if (Objects.nonNull(cellStyle)) {
+                cell.setCellStyle(cellStyle);
+            }
+        }
+        return cell;
+    }
+
+    public static Cell getOrCreateCell(Row row, Integer colIndex) {
+        return Rows.getOrCreateCell(row, colIndex, null);
+    }
+
     public static Function<? super Row, ? extends Cell> createCell(Integer colIndex) {
         return row -> Rows.createCell(row, colIndex);
     }
 
     public static Function<? super Integer, ? extends Cell> createCell(Row row) {
         return colIndex -> Rows.createCell(row, colIndex);
+    }
+
+    public static Function<? super Row, ? extends Cell> getOrCreateCell(Integer colIndex) {
+        return row -> Rows.getOrCreateCell(row, colIndex);
+    }
+
+    public static Function<? super Integer, ? extends Cell> getOrCreateCell(Row row) {
+        return colIndex -> Rows.getOrCreateCell(row, colIndex);
     }
 
     public static Cell createCellWithCellStyle(Row row, Integer colIndex, Workbook workbook, Consumer<CellStyle> cellStyleConsumer) {
