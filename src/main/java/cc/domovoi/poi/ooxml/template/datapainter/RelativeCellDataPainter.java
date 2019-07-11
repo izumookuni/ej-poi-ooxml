@@ -2,7 +2,10 @@ package cc.domovoi.poi.ooxml.template.datapainter;
 
 import cc.domovoi.poi.ooxml.template.DataSupplier;
 import cc.domovoi.poi.ooxml.template.PainterContext;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+
+import java.util.Objects;
 
 public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
 
@@ -17,6 +20,15 @@ public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
         this.regionId = regionId;
         this.relativeRowIndex = relativeRowIndex;
         this.relativeColIndex = relativeColIndex;
+    }
+
+    @Override
+    public Integer getMaxRelativeRowOffset() {
+        return (Objects.nonNull(relativeRowIndex) ? relativeRowIndex : 0) + (Objects.nonNull(this.getHeight()) ? this.getHeight() : 0) - 1;
+    }
+
+    public Integer getMaxRelativeColOffset() {
+        return (Objects.nonNull(relativeColIndex) ? relativeColIndex : 0) + (Objects.nonNull(this.getWidth()) ? this.getWidth() : 0) - 1;
     }
 
     @Override
@@ -39,7 +51,10 @@ public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
 
     @Override
     public void paint(PainterContext painterContext) {
-
+        T data = getSupplier().apply(painterContext.genData(this));
+        Integer rowIndex = painterContext.getLastRowIndex() + 1;
+        Cell cell = detectCell(painterContext, rowIndex + this.relativeRowIndex, this.relativeColIndex);
+        innerPaint(cell, data);
     }
 
     @Override

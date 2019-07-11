@@ -1,17 +1,26 @@
 package cc.domovoi.poi.ooxml.template;
 
+import cc.domovoi.poi.ooxml.Workbooks;
 import cc.domovoi.poi.ooxml.template.cellvalue.CellValueSetters;
 import cc.domovoi.poi.ooxml.template.datapainter.CellDataPainter;
 import cc.domovoi.poi.ooxml.template.datapainter.RegionDataPainter;
 import cc.domovoi.poi.ooxml.template.datapainter.RelativeCellDataPainter;
 import cc.domovoi.poi.ooxml.template.datasupplier.*;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -19,8 +28,65 @@ public class PainterApplication {
 
     private static PainterContext painterContext = new PainterContext();
 
-    public static void addData(Object data) {
+    public static Workbook create() {
+        Workbook workbook = Workbooks.create();
+        painterContext.setWorkbook(workbook);
+        return workbook;
+    }
+
+    public static Workbook load(String path) {
+        Optional<Workbook> workbook = Workbooks.load(path);
+        assert workbook.isPresent();
+        painterContext.setWorkbook(workbook.get());
+        return workbook.get();
+    }
+
+    public static Workbook load(File file) {
+        Optional<Workbook> workbook = Workbooks.load(file);
+        assert workbook.isPresent();
+        painterContext.setWorkbook(workbook.get());
+        return workbook.get();
+    }
+
+    public static Workbook load(InputStream inputStream) {
+        Optional<Workbook> workbook = Workbooks.load(inputStream);
+        assert workbook.isPresent();
+        painterContext.setWorkbook(workbook.get());
+        return workbook.get();
+    }
+
+    public static void write(String path) {
+        Workbooks.write(painterContext.getWorkbook(), path);
+    }
+
+    public static void write(File file) {
+        Workbooks.write(painterContext.getWorkbook(), file);
+    }
+
+    public static void write(OutputStream outputStream) {
+        Workbooks.write(painterContext.getWorkbook(), outputStream);
+    }
+
+    public static Sheet sheet(String name) {
+        Sheet sheet = Workbooks.getOrCreateSheet(painterContext.getWorkbook(), name);
+        assert Objects.nonNull(sheet);
+        painterContext.detectSheet(sheet);
+        return sheet;
+    }
+
+    public static Sheet sheet(Integer index) {
+        Sheet sheet = painterContext.getWorkbook().getSheetAt(index);
+        assert Objects.nonNull(sheet);
+        painterContext.detectSheet(sheet);
+        return sheet;
+    }
+
+    public static void data(Object data) {
         painterContext.setData(data);
+    }
+
+    public static void data(Object data, Sheet sheet) {
+        painterContext.getDataMap().putIfAbsent(sheet.getSheetName(), data);
     }
 
     public static EmptyDataSupplier none() {

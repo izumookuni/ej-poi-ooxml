@@ -1,13 +1,12 @@
 package cc.domovoi.poi.ooxml.template.datapainter;
 
+import cc.domovoi.poi.ooxml.Sheets;
 import cc.domovoi.poi.ooxml.template.DataPainter;
 import cc.domovoi.poi.ooxml.template.DataSupplier;
 import cc.domovoi.poi.ooxml.template.PainterContext;
 import org.apache.poi.ss.usermodel.CellStyle;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class RegionDataPainter<T> implements DataPainter {
 
@@ -58,6 +57,7 @@ public class RegionDataPainter<T> implements DataPainter {
 
     @Override
     public void beforePaint(PainterContext painterContext) {
+        assert children.isEmpty() || children.stream().allMatch(dataPainter -> dataPainter instanceof RegionDataPainter) || children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter);
         painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
     }
 
@@ -68,7 +68,22 @@ public class RegionDataPainter<T> implements DataPainter {
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-
+        if (children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter)) {
+            Integer lastRowIndex = children.stream().map(dataPainter -> (RelativeCellDataPainter) dataPainter).max(Comparator.comparingInt(RelativeCellDataPainter::getMaxRelativeRowOffset)).map(RelativeCellDataPainter::getMaxRelativeRowOffset).orElse(null);
+            Integer lastColIndex = children.stream().map(dataPainter -> (RelativeCellDataPainter) dataPainter).max(Comparator.comparingInt(RelativeCellDataPainter::getMaxRelativeColOffset)).map(RelativeCellDataPainter::getMaxRelativeColOffset).orElse(null);
+            if (Objects.isNull(lastRowIndex) && Objects.nonNull(rowIndex)) {
+                lastRowIndex = rowIndex;
+            }
+            if (Objects.isNull(lastColIndex) && Objects.nonNull(colIndex)) {
+                lastColIndex = colIndex;
+            }
+            assert Objects.nonNull(lastRowIndex);
+            painterContext.setLastRowIndex(lastRowIndex);
+            if (Objects.nonNull(lastColIndex)) {
+                painterContext.setLastColIndex(lastColIndex);
+            }
+            painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), lastRowIndex));
+        }
     }
 
     public String getId() {

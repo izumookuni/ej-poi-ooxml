@@ -1,17 +1,15 @@
 package cc.domovoi.poi.ooxml.template;
 
-import cc.domovoi.poi.ooxml.template.cellvalue.CellValueSetters;
-import cc.domovoi.poi.ooxml.template.datapainter.CellDataPainter;
-import cc.domovoi.poi.ooxml.template.datasupplier.CustomDataSupplier;
-import cc.domovoi.poi.ooxml.template.datasupplier.EmptyDataSupplier;
+import cc.domovoi.poi.ooxml.Workbooks;
 import org.apache.poi.ss.usermodel.*;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class PainterContext {
+
+    private Map<String, List<DataPainter>> rootDataPaintMap = new LinkedHashMap<>();
 
     private Map<String, DataPainter> dataPainterMap = new LinkedHashMap<>();
 
@@ -19,7 +17,7 @@ public class PainterContext {
 
     private Map<String, Font> fontMap = new HashMap<>();
 
-    private Object data;
+    private Map<String, Object> dataMap;
 
     private Map<String, Object> tempData = new HashMap<>();
 
@@ -31,12 +29,31 @@ public class PainterContext {
 
     private Row lastRow;
 
+    private Integer lastRowIndex;
+
+    private Integer lastColIndex;
+
     public void postPaint() {
-        dataPainterMap.values().stream().filter(DataPainter::root).forEach(dataPainter -> dataPainter.postPaint(this));
+//        dataPainterMap.values().stream().filter(DataPainter::root).forEach(dataPainter -> dataPainter.postPaint(this));
+        rootDataPaintMap.forEach((sheetName, dataPainterList) -> {
+            setLastSheet(workbook.getSheet(sheetName));
+            dataPainterList.forEach(dataPainter -> dataPainter.postPaint(this));
+        });
+    }
+
+    public void detectSheet(Sheet sheet) {
+        setLastSheet(sheet);
+        rootDataPaintMap.putIfAbsent(sheet.getSheetName(), new ArrayList<>());
     }
 
     public void attachDataPainter(String id, DataPainter dataPainter) {
         dataPainterMap.putIfAbsent(id, dataPainter);
+        if (dataPainter.root()) {
+            if (Objects.isNull(lastSheet)) {
+                detectSheet(Workbooks.createSheet(workbook));
+            }
+            rootDataPaintMap.get(lastSheet.getSheetName()).add(dataPainter);
+        }
     }
 
     public void attachDataGetter(Predicate<DataPainter> p, Supplier<Object> customData) {
@@ -44,8 +61,19 @@ public class PainterContext {
     }
 
     public Object genData(DataPainter dataPainter) {
-        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElse(() -> this.data).get();
+        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElse(this::getData).get();
 //        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElseGet(CustomDataSupplier::self).apply(data);
+    }
+
+    public Object getData() {
+        return dataMap.get(lastSheet.getSheetName());
+    }
+
+    public void setData(Object data) {
+        if (Objects.isNull(lastSheet)) {
+            detectSheet(Workbooks.createSheet(workbook));
+        }
+        dataMap.putIfAbsent(lastSheet.getSheetName(), data);
     }
 
     public void drawCell(String id, CellStyle cellStyle, Object data) {
@@ -64,6 +92,14 @@ public class PainterContext {
 //        else {
 //            cell.setCellValue(EmptyDataSupplier.empty.apply(null));
 //        }
+    }
+
+    public Map<String, List<DataPainter>> getRootDataPaintMap() {
+        return rootDataPaintMap;
+    }
+
+    public void setRootDataPaintMap(Map<String, List<DataPainter>> rootDataPaintMap) {
+        this.rootDataPaintMap = rootDataPaintMap;
     }
 
     public List<DataPainter> findChildren(String id) {
@@ -94,12 +130,12 @@ public class PainterContext {
         this.fontMap = fontMap;
     }
 
-    public Object getData() {
-        return data;
+    public Map<String, Object> getDataMap() {
+        return dataMap;
     }
 
-    public void setData(Object data) {
-        this.data = data;
+    public void setDataMap(Map<String, Object> dataMap) {
+        this.dataMap = dataMap;
     }
 
     public Map<String, Object> getTempData() {
@@ -142,4 +178,19 @@ public class PainterContext {
         this.lastRow = lastRow;
     }
 
+    public Integer getLastRowIndex() {
+        return lastRowIndex;
+    }
+
+    public void setLastRowIndex(Integer lastRowIndex) {
+        this.lastRowIndex = lastRowIndex;
+    }
+
+    public Integer getLastColIndex() {
+        return lastColIndex;
+    }
+
+    public void setLastColIndex(Integer lastColIndex) {
+        this.lastColIndex = lastColIndex;
+    }
 }

@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.*;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -34,6 +35,10 @@ public class Workbooks {
 
     public static void write(Workbook workbook, String path) {
         Workbooks.write(workbook, new File(path));
+    }
+
+    public static Optional<Workbook> load(String path) {
+        return Workbooks.load(new File(path));
     }
 
     public static Optional<Workbook> load(File file) {
@@ -89,5 +94,21 @@ public class Workbooks {
 
     public static Function<? super Workbook, ? extends Sheet> createSheet() {
         return Workbook::createSheet;
+    }
+
+    public static Sheet getOrCreateSheet(Workbook workbook, String name) {
+        Sheet sheet = workbook.getSheet(name);
+        if (Objects.isNull(sheet)) {
+            sheet = workbook.createSheet(name);
+        }
+        return sheet;
+    }
+
+    public static Function<? super Workbook, ? extends Sheet> getOrCreateSheet(String name) {
+        return workbook -> Workbooks.getOrCreateSheet(workbook, name);
+    }
+
+    public static Function<? super String, ? extends Sheet> getOrCreateSheet(Workbook workbook) {
+        return name -> Workbooks.getOrCreateSheet(workbook, name);
     }
 }

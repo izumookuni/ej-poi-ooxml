@@ -65,6 +65,37 @@ public class CellDataPainter<T> implements DataPainter {
         return width == 1 && height == 1;
     }
 
+    public Integer getMaxRelativeRowOffset() {
+        return (Objects.nonNull(rowIndex) ? rowIndex : 0) + (Objects.nonNull(this.height) ? this.height : 0) - 1;
+    }
+
+    public Integer getMaxRelativeColOffset() {
+        return (Objects.nonNull(colIndex) ? colIndex : 0) + (Objects.nonNull(this.width) ? this.width : 0) - 1;
+    }
+
+    protected Cell detectCell(PainterContext painterContext, Integer rowIndex, Integer colIndex) {
+        final Cell cell;
+        if (singleton()) {
+            cell = Sheets.getOrCreateRow(rowIndex).andThen(Rows.getOrCreateCell(colIndex)).apply(painterContext.getLastSheet());
+        }
+        else {
+            cell = Cells.addMergedRegionAsCell(painterContext.getLastSheet(), rowIndex, rowIndex + this.height - 1, colIndex, colIndex + this.width - 1);
+        }
+        return cell;
+    }
+
+    protected void innerPaint(Cell cell, T data) {
+        if (Objects.nonNull(this.cellStyle)) {
+            cell.setCellStyle(this.cellStyle);
+        }
+        if (Objects.nonNull(data)) {
+            CellValueSetters.forClass(this.dataClass()).setCellValue(data, cell);
+        }
+        else {
+            cell.setCellValue(EmptyDataSupplier.empty.apply(null));
+        }
+    }
+
     @Override
     public void init(PainterContext painterContext) {
         painterContext.attachDataPainter(id, this);
@@ -77,30 +108,19 @@ public class CellDataPainter<T> implements DataPainter {
 
     @Override
     public void paint(PainterContext painterContext) {
+        // Todo: Is using PainterContext.genData()?
         T data = supplier.apply(painterContext.getData());
-        final Cell cell;
-        if (singleton()) {
-            cell = Sheets.getOrCreateRow(this.rowIndex).andThen(Rows.getOrCreateCell(this.colIndex)).apply(painterContext.getLastSheet());
-        }
-        else {
-            cell = Cells.addMergedRegionAsCell(painterContext.getLastSheet(), this.rowIndex, this.rowIndex + this.height - 1, this.colIndex, this.colIndex + this.width - 1);
-        }
-        if (Objects.nonNull(this.cellStyle)) {
-            cell.setCellStyle(this.cellStyle);
-        }
-        if (Objects.nonNull(data)) {
-            CellValueSetters.forClass(this.dataClass()).setCellValue(data, cell);
-        }
-        else {
-            cell.setCellValue(EmptyDataSupplier.empty.apply(null));
-        }
+        Cell cell = detectCell(painterContext, this.rowIndex, this.colIndex);
+        innerPaint(cell, data);
 //        T data = supplier.apply(painterContext.genData(this));
 //        painterContext.drawCell(this.id, this.cellStyle, data);
     }
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), this.rowIndex + this.height - 1));
+        painterContext.setLastRowIndex(getMaxRelativeRowOffset());
+        painterContext.setLastColIndex(getMaxRelativeColOffset());
+        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), getMaxRelativeRowOffset()));
     }
 
     public String getId() {
