@@ -53,13 +53,15 @@ public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
     public void paint(PainterContext painterContext) {
         T data = getSupplier().apply(painterContext.genData(this));
         Integer rowIndex = painterContext.getLastRowIndex() + 1;
-        Cell cell = detectCell(painterContext, rowIndex + this.relativeRowIndex, this.relativeColIndex);
+        Integer colIndex = painterContext.getLastColIndex();
+        Cell cell = detectCell(painterContext, rowIndex + this.relativeRowIndex, colIndex + this.relativeColIndex);
         innerPaint(cell, data);
     }
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-
+        painterContext.setLastRowIndex(painterContext.getLastRowIndex() + this.relativeRowIndex + 1);
+        painterContext.setLastColIndex(painterContext.getLastColIndex() + this.relativeColIndex);
     }
 
     public String getRegionId() {

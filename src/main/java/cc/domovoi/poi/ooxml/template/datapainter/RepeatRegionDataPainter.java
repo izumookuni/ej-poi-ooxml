@@ -7,9 +7,6 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.IntStream;
 
 public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>> {
 

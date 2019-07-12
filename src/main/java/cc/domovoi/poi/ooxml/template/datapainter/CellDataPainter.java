@@ -120,7 +120,7 @@ public class CellDataPainter<T> implements DataPainter {
     public void afterPaint(PainterContext painterContext) {
         painterContext.setLastRowIndex(getMaxRelativeRowOffset());
         painterContext.setLastColIndex(getMaxRelativeColOffset());
-        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), getMaxRelativeRowOffset()));
+//        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), getMaxRelativeRowOffset()));
     }
 
     public String getId() {

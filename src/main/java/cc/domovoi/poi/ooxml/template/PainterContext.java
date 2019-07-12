@@ -27,11 +27,15 @@ public class PainterContext {
 
     private Sheet lastSheet;
 
-    private Row lastRow;
+//    private Row lastRow;
 
     private Integer lastRowIndex;
 
     private Integer lastColIndex;
+
+    private Integer lastRegionRowIndex;
+
+    private Integer lastRegionColIndex;
 
     public void postPaint() {
 //        dataPainterMap.values().stream().filter(DataPainter::root).forEach(dataPainter -> dataPainter.postPaint(this));
@@ -170,13 +174,13 @@ public class PainterContext {
         this.lastSheet = lastSheet;
     }
 
-    public Row getLastRow() {
-        return lastRow;
-    }
-
-    public void setLastRow(Row lastRow) {
-        this.lastRow = lastRow;
-    }
+//    public Row getLastRow() {
+//        return lastRow;
+//    }
+//
+//    public void setLastRow(Row lastRow) {
+//        this.lastRow = lastRow;
+//    }
 
     public Integer getLastRowIndex() {
         return lastRowIndex;
@@ -192,5 +196,21 @@ public class PainterContext {
 
     public void setLastColIndex(Integer lastColIndex) {
         this.lastColIndex = lastColIndex;
+    }
+
+    public Integer getLastRegionRowIndex() {
+        return lastRegionRowIndex;
+    }
+
+    public void setLastRegionRowIndex(Integer lastRegionRowIndex) {
+        this.lastRegionRowIndex = lastRegionRowIndex;
+    }
+
+    public Integer getLastRegionColIndex() {
+        return lastRegionColIndex;
+    }
+
+    public void setLastRegionColIndex(Integer lastRegionColIndex) {
+        this.lastRegionColIndex = lastRegionColIndex;
     }
 }
