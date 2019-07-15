@@ -2,7 +2,7 @@ package cc.domovoi.poi.ooxml.template;
 
 import java.util.Objects;
 
-public interface DataPainter {
+public interface DataPainter<T> {
 
     String getId();
 

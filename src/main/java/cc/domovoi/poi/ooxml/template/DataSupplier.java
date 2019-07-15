@@ -4,4 +4,5 @@ import java.util.function.Function;
 
 public interface DataSupplier<I, O> extends Function<I, O> {
 
+    Class<O> dataType();
 }

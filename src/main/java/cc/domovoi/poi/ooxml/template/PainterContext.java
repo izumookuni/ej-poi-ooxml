@@ -2,12 +2,16 @@ package cc.domovoi.poi.ooxml.template;
 
 import cc.domovoi.poi.ooxml.Workbooks;
 import org.apache.poi.ss.usermodel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class PainterContext {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private Map<String, List<DataPainter>> rootDataPaintMap = new LinkedHashMap<>();
 
@@ -17,7 +21,7 @@ public class PainterContext {
 
     private Map<String, Font> fontMap = new HashMap<>();
 
-    private Map<String, Object> dataMap;
+    private Map<String, Object> dataMap = new LinkedHashMap<>();
 
     private Map<String, Object> tempData = new HashMap<>();
 
@@ -52,6 +56,7 @@ public class PainterContext {
 
     public void attachDataPainter(String id, DataPainter dataPainter) {
         dataPainterMap.putIfAbsent(id, dataPainter);
+        logger.debug(String.format("attachDataPainter(%s -> %s)", id, dataPainter));
         if (dataPainter.root()) {
             if (Objects.isNull(lastSheet)) {
                 detectSheet(Workbooks.createSheet(workbook));
@@ -65,6 +70,7 @@ public class PainterContext {
     }
 
     public Object genData(DataPainter dataPainter) {
+        logger.debug(String.format("%s match: ", dataPainter) + customDataGetter.keySet().stream().anyMatch(p -> p.test(dataPainter)));
         return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElse(this::getData).get();
 //        return customDataGetter.entrySet().stream().filter(entry -> entry.getKey().test(dataPainter)).findFirst().map(Map.Entry::getValue).orElseGet(CustomDataSupplier::self).apply(data);
     }

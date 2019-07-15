@@ -2,6 +2,7 @@ package cc.domovoi.poi.ooxml.template.datapainter;
 
 import cc.domovoi.poi.ooxml.template.DataSupplier;
 import cc.domovoi.poi.ooxml.template.PainterContext;
+import cc.domovoi.poi.ooxml.template.datatype.DataType;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 
@@ -20,6 +21,15 @@ public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
         this.regionId = regionId;
         this.relativeRowIndex = relativeRowIndex;
         this.relativeColIndex = relativeColIndex;
+    }
+
+
+    @Override
+    public String toString() {
+        return "RelativeCellDataPainter{" +
+                "id='" + getId() + '\'' +
+                "regionId='" + regionId + '\'' +
+                '}';
     }
 
     @Override
@@ -52,16 +62,16 @@ public class RelativeCellDataPainter<T> extends CellDataPainter<T> {
     @Override
     public void paint(PainterContext painterContext) {
         T data = getSupplier().apply(painterContext.genData(this));
-        Integer rowIndex = painterContext.getLastRowIndex() + 1;
-        Integer colIndex = painterContext.getLastColIndex();
-        Cell cell = detectCell(painterContext, rowIndex + this.relativeRowIndex, colIndex + this.relativeColIndex);
-        innerPaint(cell, data);
+        Integer rowIndex = painterContext.getLastRegionRowIndex();
+        Integer colIndex = painterContext.getLastRegionColIndex();
+        Cell cell = detectCell(painterContext, rowIndex + this.relativeRowIndex + 1, colIndex + this.relativeColIndex + 1);
+        innerPaint(cell, data, painterContext);
     }
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-        painterContext.setLastRowIndex(painterContext.getLastRowIndex() + this.relativeRowIndex + 1);
-        painterContext.setLastColIndex(painterContext.getLastColIndex() + this.relativeColIndex);
+        painterContext.setLastRowIndex(painterContext.getLastRegionRowIndex() + getMaxRelativeRowOffset() + 1);
+        painterContext.setLastColIndex(painterContext.getLastRegionColIndex() + getMaxRelativeColOffset() + 1);
     }
 
     public String getRegionId() {

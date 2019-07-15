@@ -5,6 +5,8 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -12,6 +14,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class OOXMLTest {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Test
     public void test1() throws Exception {
@@ -39,8 +43,8 @@ public class OOXMLTest {
         CellStyle cellStyle = CellStyles.createDateCellStyle(wb, "yyyy-MM-dd HH:mm:ss");
         cell.setCellStyle(cellStyle);
         cell.setCellValue(new Date());
-        System.out.println("1: " + cell.getNumericCellValue());
-        System.out.println("2: " + cell.getDateCellValue());
+        logger.debug("1: " + cell.getNumericCellValue());
+        logger.debug("2: " + cell.getDateCellValue());
     }
 
     @Test

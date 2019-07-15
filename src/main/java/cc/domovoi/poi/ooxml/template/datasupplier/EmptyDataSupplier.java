@@ -1,6 +1,7 @@
 package cc.domovoi.poi.ooxml.template.datasupplier;
 
 import cc.domovoi.poi.ooxml.template.DataSupplier;
+import cc.domovoi.poi.ooxml.template.datatype.DataType;
 
 public class EmptyDataSupplier implements DataSupplier<Object, String> {
 
@@ -12,5 +13,10 @@ public class EmptyDataSupplier implements DataSupplier<Object, String> {
     @Override
     public String apply(Object o) {
         return "";
+    }
+
+    @Override
+    public Class<String> dataType() {
+        return String.class;
     }
 }

@@ -1,7 +1,9 @@
 package cc.domovoi.poi.ooxml.template.datasupplier;
 
 import cc.domovoi.poi.ooxml.template.DataSupplier;
+import cc.domovoi.poi.ooxml.template.datatype.DataType;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.function.Function;
 
 public class CustomDataSupplier<T> implements DataSupplier<Object, T> {
@@ -20,5 +22,10 @@ public class CustomDataSupplier<T> implements DataSupplier<Object, T> {
     @Override
     public T apply(Object o) {
         return operation.apply(o);
+    }
+
+    @Override
+    public Class<T> dataType() {
+        return (Class<T>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
     }
 }

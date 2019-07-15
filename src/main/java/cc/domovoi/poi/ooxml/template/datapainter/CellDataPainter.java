@@ -1,21 +1,26 @@
 package cc.domovoi.poi.ooxml.template.datapainter;
 
+import cc.domovoi.poi.ooxml.CellStyles;
 import cc.domovoi.poi.ooxml.Cells;
 import cc.domovoi.poi.ooxml.Rows;
 import cc.domovoi.poi.ooxml.Sheets;
 import cc.domovoi.poi.ooxml.template.DataPainter;
 import cc.domovoi.poi.ooxml.template.DataSupplier;
 import cc.domovoi.poi.ooxml.template.PainterContext;
+import cc.domovoi.poi.ooxml.template.cellvalue.CellValueSetter;
 import cc.domovoi.poi.ooxml.template.cellvalue.CellValueSetters;
 import cc.domovoi.poi.ooxml.template.datasupplier.EmptyDataSupplier;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 
-import java.lang.reflect.ParameterizedType;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
 
-public class CellDataPainter<T> implements DataPainter {
+public class CellDataPainter<T> implements DataPainter<T> {
 
     private String id;
 
@@ -51,9 +56,17 @@ public class CellDataPainter<T> implements DataPainter {
         this.supplier = supplier;
     }
 
+    @Override
+    public String toString() {
+        return "CellDataPainter{" +
+                "id='" + id + '\'' +
+                '}';
+    }
+
     @SuppressWarnings("unchecked")
     public Class<T> dataClass() {
-        return (Class<T>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+//        return (Class<T>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        return supplier.dataType();
     }
 
     @Override
@@ -84,12 +97,32 @@ public class CellDataPainter<T> implements DataPainter {
         return cell;
     }
 
-    protected void innerPaint(Cell cell, T data) {
+    protected void innerPaint(Cell cell, T data, PainterContext painterContext) {
         if (Objects.nonNull(this.cellStyle)) {
             cell.setCellStyle(this.cellStyle);
         }
         if (Objects.nonNull(data)) {
-            CellValueSetters.forClass(this.dataClass()).setCellValue(data, cell);
+            final CellStyle innerCellStyle;
+            if (data instanceof Date) {
+                innerCellStyle = CellStyles.attachOrCreateDateCellStyle(painterContext.getWorkbook(), this.cellStyle, CellStyles.dateTimePattern);
+            }
+            else if (data instanceof LocalDateTime) {
+                innerCellStyle = CellStyles.attachOrCreateDateCellStyle(painterContext.getWorkbook(), this.cellStyle, CellStyles.dateTimePattern);
+            }
+            else if (data instanceof LocalDate) {
+                innerCellStyle = CellStyles.attachOrCreateDateCellStyle(painterContext.getWorkbook(), this.cellStyle, CellStyles.datePattern);
+            }
+            else if (data instanceof LocalTime) {
+                innerCellStyle = CellStyles.attachOrCreateDateCellStyle(painterContext.getWorkbook(), this.cellStyle, CellStyles.timePattern);
+            }
+            else {
+                innerCellStyle = this.cellStyle;
+            }
+            if (Objects.nonNull(innerCellStyle)) {
+                cell.setCellStyle(innerCellStyle);
+            }
+            CellValueSetter<?> cellValueSetter = CellValueSetters.forClass(this.dataClass());
+            cellValueSetter.setCellValue(data, cell);
         }
         else {
             cell.setCellValue(EmptyDataSupplier.empty.apply(null));
@@ -111,7 +144,7 @@ public class CellDataPainter<T> implements DataPainter {
         // Todo: Is using PainterContext.genData()?
         T data = supplier.apply(painterContext.getData());
         Cell cell = detectCell(painterContext, this.rowIndex, this.colIndex);
-        innerPaint(cell, data);
+        innerPaint(cell, data, painterContext);
 //        T data = supplier.apply(painterContext.genData(this));
 //        painterContext.drawCell(this.id, this.cellStyle, data);
     }
