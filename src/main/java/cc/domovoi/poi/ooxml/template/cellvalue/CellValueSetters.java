@@ -33,7 +33,8 @@ public class CellValueSetters {
             case "LocalDateTime": return localDateTimeCellValueSetter(zoneOffsetId);
             case "LocalDate": return localDateCellValueSetter(zoneOffsetId);
             case "LocalTime": return localTimeCellValueSetter(zoneOffsetId);
-            default: throw new RuntimeException(String.format("no support class %s", clazz.getName()));
+//            default: throw new RuntimeException(String.format("no support class %s", clazz.getName()));
+            default: return objectCellValueSetter;
         }
     }
 
@@ -43,6 +44,7 @@ public class CellValueSetters {
 //    public static IntegerCellValueSetter integerCellValueSetter = new IntegerCellValueSetter();
     public static BooleanCellValueSetter booleanCellValueSetter = new BooleanCellValueSetter();
     public static DateCellValueSetter dateCellValueSetter = new DateCellValueSetter();
+    public static ObjectCellValueSetter objectCellValueSetter = new ObjectCellValueSetter();
 
     public static LocalDateTimeCellValueSetter localDateTimeCellValueSetter(String zoneOffsetId) {
         return new LocalDateTimeCellValueSetter(zoneOffsetId);
@@ -166,6 +168,13 @@ public class CellValueSetters {
 
         public LocalTimeCellValueSetter(String zoneOffsetId) {
             this.zoneOffsetId = zoneOffsetId;
+        }
+    }
+
+    public static class ObjectCellValueSetter implements CellValueSetter<Object> {
+        @Override
+        public void setCellValue(Object o, Cell cell) {
+            cell.setCellValue(o.toString());
         }
     }
 

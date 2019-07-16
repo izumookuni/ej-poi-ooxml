@@ -8,6 +8,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.Objects;
 
 public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>> {
 
@@ -39,13 +40,19 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
     @Override
     public void init(PainterContext painterContext) {
         super.init(painterContext);
-        innerDataPainter = new RegionDataPainter<>(getInnerId(), getId(), getRowIndex(), getColIndex(), getCellStyle(), true, CustomDataSupplier.self());
+        innerDataPainter = new RegionDataPainter<>(getInnerId(), getId(), null, null, getCellStyle(), true, CustomDataSupplier.self());
         painterContext.attachDataPainter(getInnerId(), innerDataPainter);
         this.setChildren(Collections.singletonList(innerDataPainter));
     }
 
     @Override
     public void beforePaint(PainterContext painterContext) {
+        if (Objects.nonNull(this.getRowIndex())) {
+            painterContext.setLastRegionRowIndex(this.getRowIndex() - 1);
+        }
+        if (Objects.nonNull(this.getColIndex())) {
+            painterContext.setLastRegionColIndex(this.getColIndex() - 1);
+        }
         Collection<T> dataList = this.getSupplier().apply(painterContext.genData(this));
         dataSize = dataList.size();
         dataIterator = dataList.iterator();

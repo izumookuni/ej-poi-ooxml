@@ -1,21 +1,21 @@
 package cc.domovoi.poi.ooxml.template.datasupplier;
 
 import cc.domovoi.poi.ooxml.template.DataSupplier;
-import cc.domovoi.poi.ooxml.template.datatype.DataType;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.function.Function;
 
 public class CustomDataSupplier<T> implements DataSupplier<Object, T> {
 
     @SuppressWarnings("unchecked")
     public static <T2> CustomDataSupplier<T2> self() {
-        return new CustomDataSupplier<>(o -> (T2) o);
+        return (CustomDataSupplier<T2>) new CustomDataSupplier<>(Object.class, o -> (T2) o);
     }
+
+    private Class<T> dataType;
 
     private Function<Object, T> operation;
 
-    public CustomDataSupplier(Function<Object, T> operation) {
+    public CustomDataSupplier(Class<T> dataType, Function<Object, T> operation) {
         this.operation = operation;
     }
 
@@ -26,6 +26,6 @@ public class CustomDataSupplier<T> implements DataSupplier<Object, T> {
 
     @Override
     public Class<T> dataType() {
-        return (Class<T>)((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        return dataType;
     }
 }

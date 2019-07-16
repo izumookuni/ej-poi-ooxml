@@ -8,7 +8,7 @@ public class ConstDataSupplier<O> implements DataSupplier<Object, O> {
 
     private Class<O> dataType;
 
-    public ConstDataSupplier(O data, Class<O> dataType) {
+    public ConstDataSupplier(Class<O> dataType, O data) {
         this.data = data;
         this.dataType = dataType;
     }

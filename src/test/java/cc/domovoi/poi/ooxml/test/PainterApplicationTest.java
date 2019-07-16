@@ -54,16 +54,22 @@ public class PainterApplicationTest {
         rowHeight(18.55);
         colWidth(22);
 
-        cell("1", 0, 0, 1, 1, null, str("hello world!"));
+        font("bold", f -> {
+            f.setBold(true);
+        });
+
+        style("s1", s -> s.setFont(font("bold")));
+
+        cell("1", 0, 0, 1, 1, style("s1"), str("hello world!"));
         cell("2", 0, 1, 1, 1, null, num(42.66));
-        cell("3", 0, 2, 1, 1, null, numProperty("v2"));
+        cell("3", 0, 2, 3, 1, null, numProperty("v2"));
         cell("4", 1, 0, 1, 1, null, strProperty("v1"));
         cell("5", 1, 1, 1, 1, null, dateProperty("v4"));
         cell("6", 1, 2, 1, 1, null, boolProperty("v3"));
         cell("7", 2, 0, 1, 1, null, localDateTimeProperty("v6"));
         cell("8", 2, 1, 1, 1, null, localDateProperty("v7"));
         cell("9", 2, 2, 1, 1, null, localTimeProperty("v8"));
-        cell("10", 3, 0, 1, 1, null, numProperty("innerData", "v2"));
+        cell("10", 3, 0, 1, 2, null, numProperty("innerData", "v2"));
 
         region("r1", 4, 0, null, true, property("innerData"));
         cell("11", "r1", 0, 0, 1, 1, null, numProperty("v5"));
