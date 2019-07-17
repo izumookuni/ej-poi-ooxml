@@ -28,4 +28,9 @@ public class CustomDataSupplier<T> implements DataSupplier<Object, T> {
     public Class<T> dataType() {
         return dataType;
     }
+
+    @SuppressWarnings("unchecked")
+    public <V> CustomDataSupplier<V> then(Class<V> clazz, Function<? super T, ? extends V> after) {
+        return new CustomDataSupplier<>(clazz, operation.andThen(after));
+    }
 }

@@ -13,7 +13,7 @@ public interface DataType<T> {
 
     @SuppressWarnings("unchecked")
     static <T2> DataType<T2> of(Class<T2> clazz) {
-        switch (clazz.getName()) {
+        switch (clazz.getSimpleName()) {
             case "Integer": return (DataType<T2>) new IntegerType();
             case "Double": return (DataType<T2>) new DoubleType();
             case "Boolean": return (DataType<T2>) new BooleanType();
@@ -31,6 +31,13 @@ public interface DataType<T> {
         @Override
         public Class<Object> dataType() {
             return Object.class;
+        }
+    }
+
+    class NumberType implements DataType<Number> {
+        @Override
+        public Class<Number> dataType() {
+            return Number.class;
         }
     }
 

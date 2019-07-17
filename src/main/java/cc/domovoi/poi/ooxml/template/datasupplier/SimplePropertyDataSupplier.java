@@ -7,6 +7,8 @@ import org.joor.Reflect;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,17 +32,23 @@ public class SimplePropertyDataSupplier<T> implements DataSupplier<Object, T> {
 
     @Override
     public T apply(Object o) {
-//        Reflect reflect = on(o);
-//        for (String property : properties) {
-//            reflect = on((Object) reflect.get(property));
-//
-//        }
-//        return reflect.get();
         return Seq.foldLeft(properties.stream(), on(o), (r, p) -> on((Object) r.get(p))).get();
     }
 
     @Override
     public Class<T> dataType() {
         return dataType;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <V> SimplePropertyDataSupplier<V> then(Class<V> clazz, Function<? super T, ? extends V> after) {
+        return new SimplePropertyDataSupplier<V>(clazz, properties) {
+            @Override
+            public V apply(Object o) {
+                T t = Seq.foldLeft(properties.stream(), on(o), (r, p) -> on((Object) r.get(p))).get();
+                return Objects.nonNull(t) ? after.apply(t) : null;
+//                return after.apply(Seq.foldLeft(properties.stream(), on(o), (r, p) -> on((Object) r.get(p))).get());
+            }
+        };
     }
 }
