@@ -83,11 +83,11 @@ public class CellDataPainter<T> implements DataPainter<T> {
     }
 
     public Integer getRowOffset() {
-        return (Objects.nonNull(rowIndex) ? rowIndex : 0) + (Objects.nonNull(this.height) ? this.height : 0) - 1;
+        return (Objects.nonNull(rowIndex) ? rowIndex : 0) + (Objects.nonNull(this.height) ? this.height : 0);
     }
 
     public Integer getColOffset() {
-        return (Objects.nonNull(colIndex) ? colIndex : 0) + (Objects.nonNull(this.width) ? this.width : 0) - 1;
+        return (Objects.nonNull(colIndex) ? colIndex : 0) + (Objects.nonNull(this.width) ? this.width : 0);
     }
 
     @Override
@@ -166,10 +166,10 @@ public class CellDataPainter<T> implements DataPainter<T> {
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-        painterContext.setLastRowIndex(getRowOffset());
-        painterContext.setLastColIndex(getColOffset());
-        logger.debug(String.format("setLastRowIndex(%s)", getRowOffset()));
-        logger.debug(String.format("setLastRowIndex(%s)", getColOffset()));
+        painterContext.setLastRowIndex(getRowOffset() - 1);
+        painterContext.setLastColIndex(getColOffset() - 1);
+        logger.debug(String.format("setLastRowIndex(%s)", getRowOffset() - 1));
+        logger.debug(String.format("setLastRowIndex(%s)", getColOffset() - 1));
 //        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), getRowOffset()));
     }
 

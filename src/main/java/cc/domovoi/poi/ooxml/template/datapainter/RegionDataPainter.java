@@ -41,25 +41,25 @@ public class RegionDataPainter<T> implements DataPainter<T> {
 
     private Integer colOffset;
 
-    public RegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean endNewline, DataSupplier<Object, T> supplier) {
+    public RegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, T> supplier) {
         this.id = id;
         this.pid = pid;
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.cellStyle = cellStyle;
         this.endNewline = endNewline;
-        this.startNewLine = true;
+        this.startNewLine = startNewLine;
         this.supplier = supplier;
     }
 
-    public RegionDataPainter(String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean endNewline, DataSupplier<Object, T> supplier) {
+    public RegionDataPainter(String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, T> supplier) {
         this.id = UUID.randomUUID().toString();
         this.pid = pid;
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.cellStyle = cellStyle;
         this.endNewline = endNewline;
-        this.startNewLine = true;
+        this.startNewLine = startNewLine;
         this.supplier = supplier;
     }
 
@@ -137,6 +137,14 @@ public class RegionDataPainter<T> implements DataPainter<T> {
         }
     }
 
+    protected void configCellStyle() {
+        children.forEach(child -> {
+            if (Objects.isNull(child.getCellStyle())) {
+                child.setCellStyle(this.getCellStyle());
+            }
+        });
+    }
+
     @Override
     public void beforePaint(PainterContext painterContext) {
 //        if (Objects.nonNull(this.rowIndex)) {
@@ -161,8 +169,10 @@ public class RegionDataPainter<T> implements DataPainter<T> {
 //            throw new RuntimeException("children is not all RegionDataPainter or all RelativeCellDataPainter");
 //        }
 
+        configCellStyle();
         configContextIndex(painterContext);
-
+        setRowOffset(null);
+        setColOffset(null);
         painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
 
     }
@@ -203,18 +213,42 @@ public class RegionDataPainter<T> implements DataPainter<T> {
                 painterContext.setLastRegionColIndex(-1);
             }
             else {
+                logger.debug("rowStackIndex: " + rowStackIndex);
+                logger.debug("rowOffset: " + rowOffset);
                 painterContext.setLastRegionRowIndex(rowStackIndex + rowOffset);
                 painterContext.setLastRegionColIndex(colStackIndex + colOffset);
             }
         }
         else {
             RegionDataPainter<?> regionDataPainter = (RegionDataPainter<?>) painterContext.getDataPainterMap().get(getPid());
-            if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getRowOffset())) {
-                regionDataPainter.setRowOffset(getRowOffset());
+            if (getPid().endsWith(":self")) {
+                if (endNewline) {
+                    logger.debug(String.format("p setRowOffset(%s)", NullUtils.defaultInteger(regionDataPainter.getRowOffset()) + this.getRowOffset()));
+                    regionDataPainter.setRowOffset(NullUtils.defaultInteger(regionDataPainter.getRowOffset()) + this.getRowOffset());
+                    if (NullUtils.defaultInteger(regionDataPainter.getColOffset()) < NullUtils.defaultInteger(this.getColOffset())) {
+                        logger.debug(String.format("p setColOffset(%s)", this.getColOffset()));
+                        regionDataPainter.setColOffset(this.getColOffset());
+                    }
+                }
+                else {
+                    logger.debug(String.format("p setColOffset(%s)", NullUtils.defaultInteger(regionDataPainter.getColOffset()) + this.getColOffset()));
+                    regionDataPainter.setColOffset(NullUtils.defaultInteger(regionDataPainter.getColOffset()) + this.getColOffset());
+                    if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getRowOffset())) {
+                        logger.debug(String.format("p setRowOffset(%s)", this.getRowOffset()));
+                        regionDataPainter.setRowOffset(this.getRowOffset());
+                    }
+                }
+
             }
-            if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getColOffset())) {
-                regionDataPainter.setRowOffset(this.getColOffset());
+            else {
+                if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getRowOffset())) {
+                    regionDataPainter.setRowOffset(this.getRowOffset());
+                }
+                if (NullUtils.defaultInteger(regionDataPainter.getColOffset()) < NullUtils.defaultInteger(this.getColOffset())) {
+                    regionDataPainter.setColOffset(this.getColOffset());
+                }
             }
+
             painterContext.setLastRegionRowIndex(rowStackIndex);
             painterContext.setLastRegionColIndex(colStackIndex);
         }

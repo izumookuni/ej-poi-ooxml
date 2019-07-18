@@ -8,7 +8,6 @@ import org.apache.poi.ss.usermodel.CellStyle;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.Objects;
 
 public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>> {
 
@@ -20,13 +19,15 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
 
     private Integer dataSize;
 
-    public RepeatRegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, DataSupplier<Object, Collection<T>> supplier) {
-        super(id + ":self", pid, rowIndex, colIndex, cellStyle, true, supplier);
+    public RepeatRegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, Collection<T>> supplier) {
+        super(id + ":self", pid, rowIndex, colIndex, cellStyle, startNewLine, endNewline, supplier);
     }
 
     private String getInnerId() {
         return getId().substring(0, getId().lastIndexOf(":self"));
     }
+
+
 
     @Override
     public String toString() {
@@ -40,7 +41,7 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
     @Override
     public void init(PainterContext painterContext) {
         super.init(painterContext);
-        innerDataPainter = new RegionDataPainter<>(getInnerId(), getId(), null, null, getCellStyle(), true, CustomDataSupplier.self());
+        innerDataPainter = new RegionDataPainter<>(getInnerId(), getId(), null, null, getCellStyle(), getStartNewLine(), getEndNewline(), CustomDataSupplier.self());
         painterContext.attachDataPainter(getInnerId(), innerDataPainter);
         this.setChildren(Collections.singletonList(innerDataPainter));
     }
@@ -54,7 +55,10 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
 //            painterContext.setLastRegionColIndex(this.getColIndex() - 1);
 //        }
 
+        configCellStyle();
         configContextIndex(painterContext);
+        setRowOffset(null);
+        setColOffset(null);
 
         Collection<T> dataList = this.getSupplier().apply(painterContext.genData(this));
         dataSize = dataList.size();
@@ -74,12 +78,13 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
             innerDataPainter.postPaint(painterContext);
             if (getEndNewline()) {
                 logger.debug(String.format("repeat setLastRegionRowIndex(%s)", painterContext.getLastRegionRowIndex() + innerDataPainter.getRowOffset()));
-                painterContext.setLastRegionRowIndex(painterContext.getLastRegionRowIndex() + innerDataPainter.getRowOffset() - 1);
+                painterContext.setLastRegionRowIndex(painterContext.getLastRegionRowIndex() + innerDataPainter.getRowOffset());
+
 //                painterContext.setLastRegionRowIndex(getRowStackIndex() + innerDataPainter.getRowOffset());
             }
             else {
                 logger.debug(String.format("repeat setLastRegionColIndex(%s)", painterContext.getLastRegionColIndex() + innerDataPainter.getColOffset()));
-                painterContext.setLastRegionColIndex(painterContext.getLastRegionColIndex() + innerDataPainter.getColOffset() - 1);
+                painterContext.setLastRegionColIndex(painterContext.getLastRegionColIndex() + innerDataPainter.getColOffset());
 
             }
 

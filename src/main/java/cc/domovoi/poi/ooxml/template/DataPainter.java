@@ -1,5 +1,7 @@
 package cc.domovoi.poi.ooxml.template;
 
+import org.apache.poi.ss.usermodel.CellStyle;
+
 import java.util.Objects;
 
 public interface DataPainter<T> {
@@ -7,6 +9,10 @@ public interface DataPainter<T> {
     String getId();
 
     String getPid();
+
+    CellStyle getCellStyle();
+
+    void setCellStyle(CellStyle cellStyle);
 
     Integer getRowOffset();
 

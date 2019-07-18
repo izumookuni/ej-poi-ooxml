@@ -83,20 +83,24 @@ public class PainterApplicationTest {
         cell("9", 2, 2, 1, 1, null, localTimeProperty("v8"));
         cell("10", 3, 0, 1, 2, null, numProperty("innerData", "v2"));
 
-        region("r1", 5, 0, null, true, property("innerData"));
+        region("r1", 5, 0, style("s1"), true, true, property("innerData"));
         cell("11", "r1", 0, 0, 1, 1, null, numProperty("v5"));
         cell("12", "r1", 1, 1, 1, 1, null, strProperty("v1"));
 
-        region("r2", null, null, null, true, property("innerData"));
+        region("r2", null, null, null, true, true, property("innerData"));
         cell("13", "r2", 3, 2, 1, 1, null, numProperty("v5"));
         cell("14", "r2", 4, 0, 1, 1, null, strProperty("v1"));
 
-        repeat("r3", null, null, null, property("listData"));
+        repeat("r3", null, null, null, true, false, property("listData"));
         cell("15", "r3", 0, 0, 1, 1, null, strProperty("v1"));
         cell("16", "r3", 0, 1, 1, 1, null, strProperty("v1").grouped(numProperty("v5").then(String.class, Number::toString)));
         cell("17", "r3", 1, 2, 1, 1, null, numProperty("v5").then(Number.class, i -> Objects.nonNull(i) ? i.doubleValue() + 1 : null));
         cell("18", "r3", 0, 3, 1, 1, null, numProperty("v2").outCondition(n -> ((Number) n).intValue() > 3));
         cell("19", "r3", 2, 0, 1, 1, null, numAutoInc());
+
+        region("r4", null, null, null, true, true, self());
+        cell("20", "r4", 0, 0, 1, 1, null, currentDate());
+        cell("21", "r4", 1, 1, 1, 1, null, strProperty("v1"));
 
         postPaint();
         write("src/test/resources/test.xlsx");
