@@ -3,6 +3,7 @@ package cc.domovoi.poi.ooxml.template.datapainter;
 import cc.domovoi.poi.ooxml.template.DataPainter;
 import cc.domovoi.poi.ooxml.template.DataSupplier;
 import cc.domovoi.poi.ooxml.template.PainterContext;
+import cc.domovoi.poi.ooxml.utils.NullUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,7 @@ import java.util.*;
 
 public class RegionDataPainter<T> implements DataPainter<T> {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     // same as path
     private String id;
@@ -28,25 +29,37 @@ public class RegionDataPainter<T> implements DataPainter<T> {
 
     private List<DataPainter> children = new ArrayList<>();
 
-    private Boolean newline;
+    private Boolean endNewline;
 
-    public RegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean newline, DataSupplier<Object, T> supplier) {
+    private Boolean startNewLine;
+
+    private Integer rowStackIndex;
+
+    private Integer colStackIndex;
+
+    private Integer rowOffset;
+
+    private Integer colOffset;
+
+    public RegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean endNewline, DataSupplier<Object, T> supplier) {
         this.id = id;
         this.pid = pid;
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.cellStyle = cellStyle;
-        this.newline = newline;
+        this.endNewline = endNewline;
+        this.startNewLine = true;
         this.supplier = supplier;
     }
 
-    public RegionDataPainter(String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean newline, DataSupplier<Object, T> supplier) {
+    public RegionDataPainter(String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean endNewline, DataSupplier<Object, T> supplier) {
         this.id = UUID.randomUUID().toString();
         this.pid = pid;
         this.rowIndex = rowIndex;
         this.colIndex = colIndex;
         this.cellStyle = cellStyle;
-        this.newline = newline;
+        this.endNewline = endNewline;
+        this.startNewLine = true;
         this.supplier = supplier;
     }
 
@@ -62,39 +75,95 @@ public class RegionDataPainter<T> implements DataPainter<T> {
         children.add(dataPainter);
     }
 
+    public Boolean childrenAllInstanceofRegionDataPainter() {
+        return !children.isEmpty() && children.stream().allMatch(dataPainter -> dataPainter instanceof RegionDataPainter);
+    }
+
+    public Boolean childrenAllInstanceofRelativeCellDataPainter() {
+        return !children.isEmpty() && children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter);
+    }
+
     @Override
     public void init(PainterContext painterContext) {
         painterContext.attachDataPainter(id, this);
         if (pid != null) {
             RegionDataPainter<?> regionDataPainter = ((RegionDataPainter<?>) painterContext.getDataPainterMap().get(pid));
-//            this.newline = !regionDataPainter.newline;
+//            this.endNewline = !regionDataPainter.endNewline;
             regionDataPainter.addChild(this);
+        }
+    }
+
+    protected void configContextIndex(PainterContext painterContext) {
+        if (root()) {
+            if (Objects.nonNull(this.rowIndex)) {
+                painterContext.setLastRegionRowIndex(this.rowIndex - 1);
+                logger.debug(String.format("type1 setLastRegionRowIndex(%s)", this.rowIndex - 1));
+            }
+            else if (Objects.nonNull(painterContext.getLastRowIndex())) {
+                painterContext.setLastRegionRowIndex(painterContext.getLastRowIndex());
+                logger.debug(String.format("type2 setLastRegionRowIndex(%s)", painterContext.getLastRowIndex()));
+            }
+            else {
+                painterContext.setLastRegionRowIndex(-1);
+                logger.debug(String.format("type3 setLastRegionRowIndex(%s)", -1));
+            }
+
+            if (Objects.nonNull(this.colIndex)) {
+                painterContext.setLastRegionColIndex(this.colIndex - 1);
+                logger.debug(String.format("type1 setLastRegionRowIndex(%s)", this.colIndex - 1));
+            }
+            else if (Objects.nonNull(painterContext.getLastColIndex()) && !startNewLine) {
+                painterContext.setLastRegionColIndex(painterContext.getLastColIndex());
+                logger.debug(String.format("type2 setLastRegionColIndex(%s)", painterContext.getLastColIndex()));
+            }
+            else {
+                painterContext.setLastRegionColIndex(-1);
+                logger.debug(String.format("type3 setLastRegionColIndex(%s)", -1));
+            }
+            this.rowStackIndex = painterContext.getLastRegionRowIndex();
+            this.colStackIndex = painterContext.getLastRegionColIndex();
+            logger.debug(String.format("this.rowStackIndex(%s)", this.rowStackIndex));
+            logger.debug(String.format("this.colStackIndex(%s)", this.colStackIndex));
+        }
+        else {
+            this.rowStackIndex = painterContext.getLastRegionRowIndex();
+            this.colStackIndex = painterContext.getLastRegionColIndex();
+            painterContext.setLastRegionRowIndex(this.rowStackIndex + NullUtils.defaultInteger(this.rowIndex));
+            painterContext.setLastRegionColIndex(this.colStackIndex + NullUtils.defaultInteger(this.colIndex));
+            logger.debug(String.format("this.rowStackIndex(%s)", this.rowStackIndex));
+            logger.debug(String.format("this.colStackIndex(%s)", this.colStackIndex));
+            logger.debug(String.format("setLastRegionRowIndex(%s)", this.rowStackIndex + NullUtils.defaultInteger(this.rowIndex)));
+            logger.debug(String.format("setLastRegionColIndex(%s)", this.colStackIndex + NullUtils.defaultInteger(this.colIndex)));
         }
     }
 
     @Override
     public void beforePaint(PainterContext painterContext) {
-        if (Objects.nonNull(this.rowIndex)) {
-            painterContext.setLastRegionRowIndex(this.rowIndex - 1);
-        }
-        if (Objects.nonNull(this.colIndex)) {
-            painterContext.setLastRegionColIndex(this.colIndex - 1);
-        }
-        if (!children.isEmpty() && children.stream().allMatch(dataPainter -> dataPainter instanceof RegionDataPainter)) {
-            ((RegionDataPainter<?>)children.get(children.size() - 1)).setNewline(true);
-            painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
-        }
-        else if (children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter)) {
+//        if (Objects.nonNull(this.rowIndex)) {
+//            painterContext.setLastRegionRowIndex(this.rowIndex - 1);
+//        }
+//        if (Objects.nonNull(this.colIndex)) {
+//            painterContext.setLastRegionColIndex(this.colIndex - 1);
+//        }
+//        if (!children.isEmpty() && children.stream().allMatch(dataPainter -> dataPainter instanceof RegionDataPainter)) {
+//            ((RegionDataPainter<?>)children.get(children.size() - 1)).setEndNewline(true);
 //            painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
-            painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> {
-                Object data = painterContext.genData(this);
-                logger.debug("data: " + data);
-                return supplier.apply(data);
-            });
-        }
-        else {
-            throw new RuntimeException("children is not all RegionDataPainter or all RelativeCellDataPainter");
-        }
+//        }
+//        else if (children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter)) {
+//            painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
+////            painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> {
+////                Object data = painterContext.genData(this);
+////                logger.debug("data: " + data);
+////                return supplier.apply(data);
+////            });
+//        }
+//        else {
+//            throw new RuntimeException("children is not all RegionDataPainter or all RelativeCellDataPainter");
+//        }
+
+        configContextIndex(painterContext);
+
+        painterContext.attachDataGetter(dataPainter -> this.id.equals(dataPainter.getPid()), () -> supplier.apply(painterContext.genData(this)));
 
     }
 
@@ -105,27 +174,49 @@ public class RegionDataPainter<T> implements DataPainter<T> {
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-        if (children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter)) {
-            if (newline) {
-                Integer lastRowIndex = children.stream().map(dataPainter -> (RelativeCellDataPainter) dataPainter).max(Comparator.comparingInt(RelativeCellDataPainter::getMaxRelativeRowOffset)).map(RelativeCellDataPainter::getMaxRelativeRowOffset).orElse(null);
-                if (Objects.isNull(lastRowIndex) && Objects.nonNull(rowIndex)) {
-                    lastRowIndex = rowIndex;
-                }
-                assert Objects.nonNull(lastRowIndex);
-                painterContext.setLastRegionRowIndex(lastRowIndex + painterContext.getLastRegionRowIndex() + 1);
-//                painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), lastRowIndex));
+//        if (children.stream().allMatch(dataPainter -> dataPainter instanceof RelativeCellDataPainter)) {
+//            if (endNewline) {
+//                Integer lastRowIndex = children.stream().map(dataPainter -> (RelativeCellDataPainter) dataPainter).max(Comparator.comparingInt(RelativeCellDataPainter::getRowOffset)).map(RelativeCellDataPainter::getRowOffset).orElse(null);
+//                if (Objects.isNull(lastRowIndex) && Objects.nonNull(rowIndex)) {
+//                    lastRowIndex = rowIndex;
+//                }
+//                assert Objects.nonNull(lastRowIndex);
+//                painterContext.setLastRegionRowIndex(lastRowIndex + painterContext.getLastRegionRowIndex() + 1);
+////                painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), lastRowIndex));
+//
+//                painterContext.setLastRegionColIndex(-1);
+//            }
+//            else {
+//                Integer lastColIndex = children.stream().map(dataPainter -> (RelativeCellDataPainter) dataPainter).max(Comparator.comparingInt(RelativeCellDataPainter::getColOffset)).map(RelativeCellDataPainter::getColOffset).orElse(null);
+//                if (Objects.isNull(lastColIndex) && Objects.nonNull(colIndex)) {
+//                    lastColIndex = colIndex;
+//                }
+//                if (Objects.nonNull(lastColIndex)) {
+//                    painterContext.setLastRegionColIndex(lastColIndex + painterContext.getLastRegionColIndex() + 1);
+//                }
+//            }
+//        }
 
+        if (root()) {
+            if (endNewline) {
+                painterContext.setLastRegionRowIndex(rowStackIndex + rowOffset);
                 painterContext.setLastRegionColIndex(-1);
             }
             else {
-                Integer lastColIndex = children.stream().map(dataPainter -> (RelativeCellDataPainter) dataPainter).max(Comparator.comparingInt(RelativeCellDataPainter::getMaxRelativeColOffset)).map(RelativeCellDataPainter::getMaxRelativeColOffset).orElse(null);
-                if (Objects.isNull(lastColIndex) && Objects.nonNull(colIndex)) {
-                    lastColIndex = colIndex;
-                }
-                if (Objects.nonNull(lastColIndex)) {
-                    painterContext.setLastRegionColIndex(lastColIndex + painterContext.getLastRegionColIndex() + 1);
-                }
+                painterContext.setLastRegionRowIndex(rowStackIndex + rowOffset);
+                painterContext.setLastRegionColIndex(colStackIndex + colOffset);
             }
+        }
+        else {
+            RegionDataPainter<?> regionDataPainter = (RegionDataPainter<?>) painterContext.getDataPainterMap().get(getPid());
+            if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getRowOffset())) {
+                regionDataPainter.setRowOffset(getRowOffset());
+            }
+            if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getColOffset())) {
+                regionDataPainter.setRowOffset(this.getColOffset());
+            }
+            painterContext.setLastRegionRowIndex(rowStackIndex);
+            painterContext.setLastRegionColIndex(colStackIndex);
         }
     }
 
@@ -185,11 +276,55 @@ public class RegionDataPainter<T> implements DataPainter<T> {
         this.children = children;
     }
 
-    public Boolean getNewline() {
-        return newline;
+    public Boolean getEndNewline() {
+        return endNewline;
     }
 
-    public void setNewline(Boolean newline) {
-        this.newline = newline;
+    public void setEndNewline(Boolean endNewline) {
+        this.endNewline = endNewline;
+    }
+
+    public Boolean getStartNewLine() {
+        return startNewLine;
+    }
+
+    public void setStartNewLine(Boolean startNewLine) {
+        this.startNewLine = startNewLine;
+    }
+
+    public Integer getRowStackIndex() {
+        return rowStackIndex;
+    }
+
+    public void setRowStackIndex(Integer rowStackIndex) {
+        this.rowStackIndex = rowStackIndex;
+    }
+
+    public Integer getColStackIndex() {
+        return colStackIndex;
+    }
+
+    public void setColStackIndex(Integer colStackIndex) {
+        this.colStackIndex = colStackIndex;
+    }
+
+    @Override
+    public Integer getRowOffset() {
+        return rowOffset;
+    }
+
+    @Override
+    public void setRowOffset(Integer rowOffset) {
+        this.rowOffset = rowOffset;
+    }
+
+    @Override
+    public Integer getColOffset() {
+        return colOffset;
+    }
+
+    @Override
+    public void setColOffset(Integer colOffset) {
+        this.colOffset = colOffset;
     }
 }

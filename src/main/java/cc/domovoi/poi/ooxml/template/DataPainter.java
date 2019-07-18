@@ -8,6 +8,14 @@ public interface DataPainter<T> {
 
     String getPid();
 
+    Integer getRowOffset();
+
+    void setRowOffset(Integer rowOffset);
+
+    Integer getColOffset();
+
+    void setColOffset(Integer colOffset);
+
     default Boolean root() {
         return Objects.isNull(getPid());
     }

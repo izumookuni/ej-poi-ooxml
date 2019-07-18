@@ -12,6 +12,8 @@ import cc.domovoi.poi.ooxml.template.cellvalue.CellValueSetters;
 import cc.domovoi.poi.ooxml.template.datasupplier.EmptyDataSupplier;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +23,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class CellDataPainter<T> implements DataPainter<T> {
+
+    protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String id;
 
@@ -78,12 +82,22 @@ public class CellDataPainter<T> implements DataPainter<T> {
         return width == 1 && height == 1;
     }
 
-    public Integer getMaxRelativeRowOffset() {
+    public Integer getRowOffset() {
         return (Objects.nonNull(rowIndex) ? rowIndex : 0) + (Objects.nonNull(this.height) ? this.height : 0) - 1;
     }
 
-    public Integer getMaxRelativeColOffset() {
+    public Integer getColOffset() {
         return (Objects.nonNull(colIndex) ? colIndex : 0) + (Objects.nonNull(this.width) ? this.width : 0) - 1;
+    }
+
+    @Override
+    public void setRowOffset(Integer rowOffset) {
+//        this.height = rowOffset + 1;
+    }
+
+    @Override
+    public void setColOffset(Integer colOffset) {
+//        this.width = colOffset + 1;
     }
 
     protected Cell detectCell(PainterContext painterContext, Integer rowIndex, Integer colIndex) {
@@ -141,19 +155,22 @@ public class CellDataPainter<T> implements DataPainter<T> {
 
     @Override
     public void paint(PainterContext painterContext) {
-        // Todo: Is using PainterContext.genData()?
         T data = supplier.apply(painterContext.getData());
         Cell cell = detectCell(painterContext, this.rowIndex, this.colIndex);
+        logger.debug(String.format("detectCell(%s,%s)", this.rowIndex, this.colIndex));
         innerPaint(cell, data, painterContext);
+        logger.debug(String.format("insertData: %s", data));
 //        T data = supplier.apply(painterContext.genData(this));
 //        painterContext.drawCell(this.id, this.cellStyle, data);
     }
 
     @Override
     public void afterPaint(PainterContext painterContext) {
-        painterContext.setLastRowIndex(getMaxRelativeRowOffset());
-        painterContext.setLastColIndex(getMaxRelativeColOffset());
-//        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), getMaxRelativeRowOffset()));
+        painterContext.setLastRowIndex(getRowOffset());
+        painterContext.setLastColIndex(getColOffset());
+        logger.debug(String.format("setLastRowIndex(%s)", getRowOffset()));
+        logger.debug(String.format("setLastRowIndex(%s)", getColOffset()));
+//        painterContext.setLastRow(Sheets.getOrCreateRow(painterContext.getLastSheet(), getRowOffset()));
     }
 
     public String getId() {

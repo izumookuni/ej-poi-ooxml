@@ -83,7 +83,7 @@ public class PainterApplicationTest {
         cell("9", 2, 2, 1, 1, null, localTimeProperty("v8"));
         cell("10", 3, 0, 1, 2, null, numProperty("innerData", "v2"));
 
-        region("r1", 4, 0, null, true, property("innerData"));
+        region("r1", 5, 0, null, true, property("innerData"));
         cell("11", "r1", 0, 0, 1, 1, null, numProperty("v5"));
         cell("12", "r1", 1, 1, 1, 1, null, strProperty("v1"));
 
