@@ -19,8 +19,8 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
 
     private Integer dataSize;
 
-    public RepeatRegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, Collection<T>> supplier) {
-        super(id + ":self", pid, rowIndex, colIndex, cellStyle, startNewLine, endNewline, supplier);
+    public RepeatRegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, Boolean startNewLine, Boolean endNewline, CellStyle cellStyle, DataSupplier<Object, Collection<T>> supplier) {
+        super(id + ":self", pid, rowIndex, colIndex, startNewLine, endNewline, cellStyle, supplier);
     }
 
     private String getInnerId() {
@@ -41,7 +41,7 @@ public class RepeatRegionDataPainter<T> extends RegionDataPainter<Collection<T>>
     @Override
     public void init(PainterContext painterContext) {
         super.init(painterContext);
-        innerDataPainter = new RegionDataPainter<>(getInnerId(), getId(), null, null, getCellStyle(), getStartNewLine(), getEndNewline(), CustomDataSupplier.self());
+        innerDataPainter = new RegionDataPainter<>(getInnerId(), getId(), null, null, getStartNewLine(), getEndNewline(), getCellStyle(), CustomDataSupplier.self());
         painterContext.attachDataPainter(getInnerId(), innerDataPainter);
         this.setChildren(Collections.singletonList(innerDataPainter));
     }

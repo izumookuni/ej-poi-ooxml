@@ -41,7 +41,7 @@ public class RegionDataPainter<T> implements DataPainter<T> {
 
     private Integer colOffset;
 
-    public RegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, T> supplier) {
+    public RegionDataPainter(String id, String pid, Integer rowIndex, Integer colIndex, Boolean startNewLine, Boolean endNewline, CellStyle cellStyle, DataSupplier<Object, T> supplier) {
         this.id = id;
         this.pid = pid;
         this.rowIndex = rowIndex;
@@ -52,7 +52,7 @@ public class RegionDataPainter<T> implements DataPainter<T> {
         this.supplier = supplier;
     }
 
-    public RegionDataPainter(String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, T> supplier) {
+    public RegionDataPainter(String pid, Integer rowIndex, Integer colIndex, Boolean startNewLine, Boolean endNewline, CellStyle cellStyle, DataSupplier<Object, T> supplier) {
         this.id = UUID.randomUUID().toString();
         this.pid = pid;
         this.rowIndex = rowIndex;
@@ -213,8 +213,6 @@ public class RegionDataPainter<T> implements DataPainter<T> {
                 painterContext.setLastRegionColIndex(-1);
             }
             else {
-                logger.debug("rowStackIndex: " + rowStackIndex);
-                logger.debug("rowOffset: " + rowOffset);
                 painterContext.setLastRegionRowIndex(rowStackIndex + rowOffset);
                 painterContext.setLastRegionColIndex(colStackIndex + colOffset);
             }
@@ -242,9 +240,11 @@ public class RegionDataPainter<T> implements DataPainter<T> {
             }
             else {
                 if (NullUtils.defaultInteger(regionDataPainter.getRowOffset()) < NullUtils.defaultInteger(this.getRowOffset())) {
+                    logger.debug(String.format("p setRowOffset(%s)", this.getRowOffset()));
                     regionDataPainter.setRowOffset(this.getRowOffset());
                 }
                 if (NullUtils.defaultInteger(regionDataPainter.getColOffset()) < NullUtils.defaultInteger(this.getColOffset())) {
+                    logger.debug(String.format("p setColOffset(%s)", this.getColOffset()));
                     regionDataPainter.setColOffset(this.getColOffset());
                 }
             }

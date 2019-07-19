@@ -145,6 +145,16 @@ public class PainterApplication {
         painterContext.getDataMap().putIfAbsent(sheet.getSheetName(), data);
     }
 
+    // action
+
+    public static void postPaint() {
+        painterContext.postPaint();
+    }
+
+    public static void clear() {
+        painterContext.clear();
+    }
+
     // property
 
     public static EmptyDataSupplier none() {
@@ -242,9 +252,28 @@ public class PainterApplication {
         return new CustomDataSupplier<T>(clazz, operation);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> SimpleCollectionPropertyDataSupplier<T> collectionProperty(String... properties) {
+        return (SimpleCollectionPropertyDataSupplier<T>) new SimpleCollectionPropertyDataSupplier<>(Object.class, properties);
+    }
+
+    public static <T> SimpleCollectionPropertyDataSupplier<T> collectionProperty(Class<T> clazz, String... properties) {
+        return new SimpleCollectionPropertyDataSupplier<>(clazz, properties);
+    }
+
+    public static <T> CustomCollectionDataSupplier<T> collectionProperty(Function<Object, Collection<T>> operation) {
+        return new CustomCollectionDataSupplier<T>(null, operation);
+    }
+
+    public static <T> CustomCollectionDataSupplier<T> collectionProperty(Class<T> clazz, Function<Object, Collection<T>> operation) {
+        return new CustomCollectionDataSupplier<T>(clazz, operation);
+    }
+
     public static <T> CustomDataSupplier<T> self() {
         return CustomDataSupplier.self();
     }
+
+    // Todo: formula
 
     // style
 
@@ -265,10 +294,6 @@ public class PainterApplication {
             cellStyle.setFont(font);
             consumer.accept(cellStyle);
         }).genData(painterContext);
-    }
-
-    public static void postPaint() {
-        painterContext.postPaint();
     }
 
     public static CellStyle style(String id) {
@@ -331,6 +356,16 @@ public class PainterApplication {
         return (T) painterContext.getTempData().get(id);
     }
 
+    public static <T> T lazyStamp(String id, Supplier<? extends T> data) {
+        painterContext.getTempData().put(id, data);
+        return data.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T lazyStamp(String id) {
+        return ((Supplier<? extends T>) painterContext.getTempData().get(id)).get();
+    }
+
     // struct
 
     // Absolute cell
@@ -367,9 +402,7 @@ public class PainterApplication {
      * @return cell id
      */
     public static <T> String cell(String id, Integer absRowIndex, Integer absColIndex, Integer width, Integer height, DataSupplier<Object, T> dataSupplier) {
-        CellDataPainter<T> cellDataPainter = new CellDataPainter<>(id, absRowIndex, absColIndex, width, height, null, dataSupplier);
-        cellDataPainter.init(painterContext);
-        return id;
+        return cell(id, absRowIndex, absColIndex, width, height, null, dataSupplier);
     }
 
     /**
@@ -384,9 +417,7 @@ public class PainterApplication {
      * @return cell id
      */
     public static <T> String cell(String id, Integer absRowIndex, Integer absColIndex, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
-        CellDataPainter<T> cellDataPainter = new CellDataPainter<>(id, absRowIndex, absColIndex, 1, 1, cellStyle, dataSupplier);
-        cellDataPainter.init(painterContext);
-        return id;
+        return cell(id, absRowIndex, absColIndex, 1, 1, cellStyle, dataSupplier);
     }
 
     /**
@@ -400,9 +431,7 @@ public class PainterApplication {
      * @return cell id
      */
     public static <T> String cell(String id, Integer absRowIndex, Integer absColIndex, DataSupplier<Object, T> dataSupplier) {
-        CellDataPainter<T> cellDataPainter = new CellDataPainter<>(id, absRowIndex, absColIndex, 1, 1, null, dataSupplier);
-        cellDataPainter.init(painterContext);
-        return id;
+        return cell(id, absRowIndex, absColIndex, 1, 1, null, dataSupplier);
     }
 
     // Relative cell
@@ -424,7 +453,6 @@ public class PainterApplication {
     public static <T> String cell(String id, String regionId, Integer relativeRowIndex, Integer relativeColIndex, Integer width, Integer height, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
         RelativeCellDataPainter<T> cellDataPainter = new RelativeCellDataPainter<>(id, regionId, relativeRowIndex, relativeColIndex, width, height, cellStyle, dataSupplier);
         cellDataPainter.init(painterContext);
-        // Todo: ...
         return id;
     }
 
@@ -442,10 +470,7 @@ public class PainterApplication {
      * @return cell id
      */
     public static <T> String cell(String id, String regionId, Integer relativeRowIndex, Integer relativeColIndex, Integer width, Integer height, DataSupplier<Object, T> dataSupplier) {
-        RelativeCellDataPainter<T> cellDataPainter = new RelativeCellDataPainter<>(id, regionId, relativeRowIndex, relativeColIndex, width, height, null, dataSupplier);
-        cellDataPainter.init(painterContext);
-        // Todo: ...
-        return id;
+        return cell(id, regionId, relativeRowIndex, relativeColIndex, width, height, null, dataSupplier);
     }
 
     /**
@@ -461,10 +486,7 @@ public class PainterApplication {
      * @return cell id
      */
     public static <T> String cell(String id, String regionId, Integer relativeRowIndex, Integer relativeColIndex, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
-        RelativeCellDataPainter<T> cellDataPainter = new RelativeCellDataPainter<>(id, regionId, relativeRowIndex, relativeColIndex, 1, 1, cellStyle, dataSupplier);
-        cellDataPainter.init(painterContext);
-        // Todo: ...
-        return id;
+        return cell(id, regionId, relativeRowIndex, relativeColIndex, 1, 1, cellStyle, dataSupplier);
     }
 
     /**
@@ -479,10 +501,7 @@ public class PainterApplication {
      * @return cell id
      */
     public static <T> String cell(String id, String regionId, Integer relativeRowIndex, Integer relativeColIndex, DataSupplier<Object, T> dataSupplier) {
-        RelativeCellDataPainter<T> cellDataPainter = new RelativeCellDataPainter<>(id, regionId, relativeRowIndex, relativeColIndex, 1, 1, null, dataSupplier);
-        cellDataPainter.init(painterContext);
-        // Todo: ...
-        return id;
+        return cell(id, regionId, relativeRowIndex, relativeColIndex, 1, 1, null, dataSupplier);
     }
 
     // top region
@@ -494,16 +513,15 @@ public class PainterApplication {
      * @param rowIndex     row index
      * @param colIndex     col index
      * @param cellStyle    cell style
+     * @param dataSupplier dataSupplier
      * @param startNewLine      startNewLine flag
      * @param endNewline      endNewline flag
-     * @param dataSupplier dataSupplier
      * @param <T>          data type
      * @return region id
      */
-    public static <T> String region(String id, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, T> dataSupplier) {
-        RegionDataPainter<T> regionDataPainter = new RegionDataPainter<>(id, null, rowIndex, colIndex, cellStyle, startNewLine, endNewline, dataSupplier);
+    public static <T> String region(String id, Integer rowIndex, Integer colIndex, Boolean startNewLine, Boolean endNewline, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
+        RegionDataPainter<T> regionDataPainter = new RegionDataPainter<>(id, null, rowIndex, colIndex, startNewLine, endNewline, cellStyle, dataSupplier);
         regionDataPainter.init(painterContext);
-        // Todo: ...
         return id;
     }
 
@@ -519,10 +537,33 @@ public class PainterApplication {
      * @return region id
      */
     public static <T> String region(String id, Integer rowIndex, Integer colIndex, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
-        RegionDataPainter<T> regionDataPainter = new RegionDataPainter<>(id, null, rowIndex, colIndex, cellStyle, true, true, dataSupplier);
-        regionDataPainter.init(painterContext);
-        // Todo: ...
-        return id;
+        return region(id, rowIndex, colIndex, true, true, cellStyle, dataSupplier);
+    }
+
+    /**
+     * Add a top region with startNewLine and endNewline true, cellStyle null.
+     *
+     * @param id           region id
+     * @param rowIndex     row index
+     * @param colIndex     col index
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String region(String id, Integer rowIndex, Integer colIndex, DataSupplier<Object, T> dataSupplier) {
+        return region(id, rowIndex, colIndex, true, true, null, dataSupplier);
+    }
+
+    /**
+     * Add a top region with startNewLine and endNewline true, cellStyle null, rowIndex and colIndex null.
+     *
+     * @param id           region id
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String region(String id, DataSupplier<Object, T> dataSupplier) {
+        return region(id, null, null, true, true, null, dataSupplier);
     }
 
     // sub region
@@ -534,17 +575,16 @@ public class PainterApplication {
      * @param pid          parent region id
      * @param rowIndex     row index
      * @param colIndex     col index
-     * @param cellStyle    cell style
      * @param startNewLine      startNewLine flag
      * @param endNewline      endNewline flag
+     * @param cellStyle    cell style
      * @param dataSupplier dataSupplier
      * @param <T>          data type
      * @return region id
      */
-    public static <T> String region(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, T> dataSupplier) {
-        RegionDataPainter<T> regionDataPainter = new RegionDataPainter<>(id, pid, rowIndex, colIndex, cellStyle, startNewLine, endNewline, dataSupplier);
+    public static <T> String region(String id, String pid, Integer rowIndex, Integer colIndex, Boolean startNewLine, Boolean endNewline, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
+        RegionDataPainter<T> regionDataPainter = new RegionDataPainter<>(id, pid, rowIndex, colIndex, startNewLine, endNewline, cellStyle, dataSupplier);
         regionDataPainter.init(painterContext);
-        // Todo: ...
         return id;
     }
 
@@ -561,24 +601,97 @@ public class PainterApplication {
      * @return region id
      */
     public static <T> String region(String id, String pid, Integer rowIndex, Integer colIndex, CellStyle cellStyle, DataSupplier<Object, T> dataSupplier) {
-        RegionDataPainter<T> regionDataPainter = new RegionDataPainter<>(id, pid, rowIndex, colIndex, cellStyle, true, true, dataSupplier);
-        regionDataPainter.init(painterContext);
-        // Todo: ...
-        return id;
+        return region(id, pid, rowIndex, colIndex, true, true, cellStyle, dataSupplier);
+    }
+
+    /**
+     * Add a sub region with startNewLine and endNewline true, cellStyle null.
+     *
+     * @param id           region id
+     * @param pid          parent region id
+     * @param rowIndex     row index
+     * @param colIndex     col index
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String region(String id, String pid, Integer rowIndex, Integer colIndex, DataSupplier<Object, T> dataSupplier) {
+        return region(id, pid, rowIndex, colIndex, true, true, null, dataSupplier);
+    }
+
+    /**
+     * Add a sub region with startNewLine and endNewline true.
+     *
+     * @param id           region id
+     * @param pid          parent region id
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String region(String id, String pid, DataSupplier<Object, T> dataSupplier) {
+        return region(id, pid, null, null, true, true, null, dataSupplier);
     }
 
     // repeat region
 
-    public static <T> String repeat(String id, Integer rowIndex, Integer colIndex, CellStyle cellStyle, Boolean startNewLine, Boolean endNewline, DataSupplier<Object, Collection<T>> dataSupplier) {
-        RepeatRegionDataPainter<T> repeatRegionDataPainter = new RepeatRegionDataPainter<>(id, null, rowIndex, colIndex, cellStyle, startNewLine, endNewline, dataSupplier);
+    /**
+     * Add a repeat region.
+     *
+     * @param id           region id
+     * @param rowIndex     row index
+     * @param colIndex     col index
+     * @param cellStyle    cell style
+     * @param dataSupplier dataSupplier
+     * @param startNewLine      startNewLine flag
+     * @param endNewline      endNewline flag
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String repeat(String id, Integer rowIndex, Integer colIndex, Boolean startNewLine, Boolean endNewline, CellStyle cellStyle, DataSupplier<Object, Collection<T>> dataSupplier) {
+        RepeatRegionDataPainter<T> repeatRegionDataPainter = new RepeatRegionDataPainter<>(id, null, rowIndex, colIndex, startNewLine, endNewline, cellStyle, dataSupplier);
         repeatRegionDataPainter.init(painterContext);
         return id;
     }
 
+    /**
+     * Add a repeat region with startNewLine and endNewline true.
+     *
+     * @param id           region id
+     * @param rowIndex     row index
+     * @param colIndex     col index
+     * @param cellStyle    cell style
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
     public static <T> String repeat(String id, Integer rowIndex, Integer colIndex, CellStyle cellStyle, DataSupplier<Object, Collection<T>> dataSupplier) {
-        RepeatRegionDataPainter<T> repeatRegionDataPainter = new RepeatRegionDataPainter<>(id, null, rowIndex, colIndex, cellStyle, true, true, dataSupplier);
-        repeatRegionDataPainter.init(painterContext);
-        return id;
+        return repeat(id, rowIndex, colIndex, true, true, cellStyle, dataSupplier);
+    }
+
+    /**
+     * Add a repeat region with startNewLine and endNewline true, cellStyle null.
+     *
+     * @param id           region id
+     * @param rowIndex     row index
+     * @param colIndex     col index
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String repeat(String id, Integer rowIndex, Integer colIndex, DataSupplier<Object, Collection<T>> dataSupplier) {
+        return repeat(id, rowIndex, colIndex, true, true, null, dataSupplier);
+    }
+
+    /**
+     * Add a repeat region with startNewLine and endNewline true, cellStyle null, rowIndex and colIndex null.
+     *
+     * @param id           region id
+     * @param dataSupplier dataSupplier
+     * @param <T>          data type
+     * @return region id
+     */
+    public static <T> String repeat(String id, DataSupplier<Object, Collection<T>> dataSupplier) {
+        return repeat(id, null, null, true, true, null, dataSupplier);
     }
 
 }
