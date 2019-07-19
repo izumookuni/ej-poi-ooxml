@@ -321,11 +321,11 @@ public class PainterApplication {
     }
 
     public static void colWidth(Integer colIndex, Integer width) {
-        painterContext.getLastSheet().setColumnWidth(colIndex, width);
+        painterContext.getLastSheet().setColumnWidth(colIndex, width * 256);
     }
 
     public static void colWidth(String ref, Integer width) {
-        painterContext.getLastSheet().setColumnWidth(Cells.convertColStringToIndex(ref), width);
+        painterContext.getLastSheet().setColumnWidth(Cells.convertColStringToIndex(ref), width * 256);
     }
 
     // free
