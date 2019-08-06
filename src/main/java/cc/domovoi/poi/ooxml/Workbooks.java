@@ -5,6 +5,7 @@ import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.*;
 import java.util.Objects;
@@ -13,9 +14,11 @@ import java.util.function.Function;
 
 public class Workbooks {
 
-    public static Workbook create() {
-        return new HSSFWorkbook();
+    public static XSSFWorkbook create() {
+        return new XSSFWorkbook();
     }
+
+    public static HSSFWorkbook createLegacy() { return new HSSFWorkbook();}
 
     public static void write(Workbook workbook, OutputStream outputStream) {
         try (Workbook wb = workbook; OutputStream os = outputStream) {

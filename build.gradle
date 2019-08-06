@@ -1,6 +1,10 @@
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'com.jfrog.artifactory' version '4.9.8'
 }
 
 group 'cc.domovoi'
@@ -10,6 +14,13 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    maven {
+        url "${artifactory_url}"
+        credentials {
+            username "${artifactory_user}"
+            password "${artifactory_password}"
+        }
+    }
     maven {
         url 'https://dl.bintray.com/izumookuni/domovoi/'
     }
@@ -46,13 +57,41 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 publishing {
     publications {
-        MyPublication(MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
             groupId "${project.group}"
             artifactId "${project.name}"
-            version "${project.version}"
+//            version "${project.version}"
+            version "${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}-SNAPSHOT"
         }
     }
+}
+
+artifactory {
+    contextUrl = "${artifactory_url}"
+    publish {
+        repository {
+            repoKey = 'libs-snapshot-local'
+            username = "${artifactory_user}"
+            password = "${artifactory_password}"
+        }
+        defaults {
+            publications ('mavenJava')
+//            properties = ['qa.level': 'basic', 'q.os': 'win32, deb, osx']
+            publishBuildInfo = true
+            publishArtifacts = true
+            publishPom = true
+            publishIvy = false
+        }
+    }
+//    resolve {
+//        repository {
+//            repoKey = 'libs-release'
+//            username = "${artifactory_user}"
+//            password = "${artifactory_password}"
+//            maven = true
+//        }
+//    }
 }
