@@ -155,6 +155,10 @@ public class PainterApplication {
         painterContext.clear();
     }
 
+    public static void clear(boolean closeWorkbook) {
+        painterContext.clear(false);
+    }
+
     // property
 
     public static EmptyDataSupplier none() {

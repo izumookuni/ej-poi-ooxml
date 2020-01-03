@@ -50,6 +50,10 @@ public class PainterContext {
     }
 
     public void clear() {
+        clear(true);
+    }
+
+    public void clear(boolean closeWorkbook) {
         try {
             this.rootDataPaintMap.clear();
             this.dataPainterMap.clear();
@@ -57,7 +61,9 @@ public class PainterContext {
             this.fontMap.clear();
             this.dataMap.clear();
             this.tempData.clear();
-            this.workbook.close();
+            if (closeWorkbook && Objects.nonNull(this.workbook)) {
+                this.workbook.close();
+            }
             this.workbook = null;
             this.customDataGetter.clear();
             this.lastSheet = null;
